@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Jessi Calancea! 💐</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for automatic birthday melody synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Canvas Confetti for celebratory bursts -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Quicksand & Pacifico for cute, warm aesthetics -->
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                        cursive: ['Pacifico', 'cursive'],
+                    },
+                    colors: {
+                        blush: '#FFF0F5',
+                        roseSoft: '#FFB6C1',
+                        roseDeep: '#FF69B4',
+                        lavender: '#E6E6FA',
+                        cream: '#FFFDD0',
+                        goldAccent: '#FFD700',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'float-delayed': 'float 6s ease-in-out 3s infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 0.8s infinite alternate',
+                        'smoke-rise': 'smokeRise 2.5s ease-out forwards',
+                        'pop-in': 'popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'spin-slow': 'spin 8s linear infinite',
+                        'sparkle-fade': 'sparkleFade 0.9s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-15px) rotate(3deg)' },
+                        },
+                        flicker: {
+                            '0%': { transform: 'scale(1) rotate(-2deg)', opacity: '0.9' },
+                            '100%': { transform: 'scale(1.1) rotate(2deg)', opacity: '1' },
+                        },
+                        smokeRise: {
+                            '0%': { transform: 'translateY(0) scale(0.8)', opacity: '0.8' },
+                            '100%': { transform: 'translateY(-22px) scale(1.4)', opacity: '0' },
+                        },
+                        popIn: {
+                            '0%': { transform: 'scale(0.85) translateY(12px)', opacity: '0' },
+                            '100%': { transform: 'scale(1) translateY(0)', opacity: '1' },
+                        },
+                        sparkleFade: {
+                            '0%': { transform: 'translate(-50%, -50%) scale(0.4)', opacity: '1' },
+                            '100%': { transform: 'translate(-50%, -140%) scale(1.3)', opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-pink-100 via-rose-50 to-purple-100 min-h-screen text-gray-800 overflow-x-hidden relative selection:bg-pink-300 selection:text-white">
+
+    <!-- Magical Welcome Envelope Overlay (Guarantees 100% reliable audio unlock on first tap while looking like a cute invitation) -->
+    <div id="welcome-overlay" class="fixed inset-0 z-50 bg-gradient-to-br from-pink-200/95 via-rose-100/95 to-purple-200/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-700">
+        <div class="bg-white/90 border-2 border-pink-200 rounded-3xl p-8 sm:p-10 max-w-md w-full shadow-2xl transform transition-transform hover:scale-[1.02]">
+            <div class="text-6xl mb-4 animate-bounce">💌</div>
+            <span class="inline-block bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">
+                ⏳ TVA Nexus Event • Variant J-1124 💐
+            </span>
+            <h2 class="font-cursive text-3xl sm:text-4xl text-pink-600 mb-3">
+                For My Favorite Variant,<br>Jessi Calancea
+            </h2>
+            <p class="text-gray-600 text-sm sm:text-base mb-7 leading-relaxed">
+                Across every branch of the Sacred Timeline, there's no one quite like you! Open your birthday surprise & music box melody inside.
+            </p>
+            <button onclick="openBirthdayCard()" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold text-lg py-4 px-8 rounded-2xl shadow-lg hover:shadow-pink-300/50 transition-all active:scale-95 flex items-center justify-center gap-3 cursor-pointer">
+                <span>✨ Open Sacred Timeline Card</span>
+                <span>🎶</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Background Decorative Floating Elements -->
+    <div id="floating-garden" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Floating Music Controller -->
+    <div class="fixed bottom-5 right-5 z-40">
+        <button id="music-toggle" onclick="toggleMusic()" aria-label="Toggle Birthday Music" class="bg-white/95 backdrop-blur-md border-2 border-pink-200 px-4 py-3 sm:px-5 sm:py-3.5 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all text-pink-600 flex items-center gap-2.5 group cursor-pointer" title="Toggle Birthday Melody">
+            <span id="music-icon" class="text-xl">🎶</span>
+            <span id="music-status" class="text-xs font-bold uppercase tracking-wider">Playing</span>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <main class="relative z-10 max-w-4xl mx-auto px-4 py-10 sm:py-16 flex flex-col items-center">
+        
+        <!-- Top Floral & TVA Variant Badge -->
+        <div class="bg-white/85 backdrop-blur-sm border border-amber-300/80 px-5 sm:px-6 py-2 rounded-full shadow-sm mb-6 animate-float flex items-center justify-center text-center gap-2">
+            <span class="text-amber-700 font-bold text-xs sm:text-sm tracking-wide">⏳ Official TVA Notice: My Favorite Variant Across All Timelines ✨</span>
+        </div>
+
+        <!-- Hero Header -->
+        <header class="text-center mb-12">
+            <h1 class="font-cursive text-5xl sm:text-7xl text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 drop-shadow-sm mb-4 leading-tight py-1">
+                Happy Birthday,<br>Jessi Calancea!
+            </h1>
+            <div class="inline-block bg-pink-100/90 text-pink-700 font-bold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-4 border border-pink-200 shadow-xs">
+                💖 Always & Forever, My Variant 💖
+            </div>
+            <p class="text-base sm:text-xl text-gray-600 font-medium max-w-xl mx-auto leading-relaxed">
+                Wishing you a day overflowing with blooming flowers, sweet surprises, endless laughter, and all the love your heart can hold—for all time, always! 💐🌸🌷
+            </p>
+        </header>
+
+        <!-- Interactive Birthday Cake Section -->
+        <section class="w-full max-w-lg bg-white/85 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-xl border border-pink-100 mb-12 text-center relative overflow-hidden">
+            <div class="absolute -top-4 -left-4 text-5xl opacity-25 rotate-12 pointer-events-none">🌸</div>
+            <div class="absolute -bottom-4 -right-4 text-5xl opacity-25 -rotate-12 pointer-events-none">🌷</div>
+
+            <h2 class="text-2xl font-bold text-pink-600 mb-2">Make a Birthday Wish! ✨</h2>
+            <p id="cake-instruction" class="text-sm text-gray-500 mb-4 font-medium">Tap the glowing candle to blow it out & launch confetti!</p>
+
+            <!-- Custom SVG Cute Birthday Cake -->
+            <div class="relative inline-block cursor-pointer group select-none p-2" onclick="blowOutCandle()" onkeydown="if(event.key==='Enter'||event.key===' ') blowOutCandle()" role="button" tabindex="0" aria-label="Birthday Cake with Candle">
+                <svg class="w-60 h-60 sm:w-72 sm:h-72 mx-auto drop-shadow-md transition-transform duration-300 group-hover:scale-105" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Plate -->
+                    <ellipse cx="120" cy="210" rx="100" ry="16" fill="#FCE7F3" stroke="#FBCFE8" stroke-width="3"/>
+                    
+                    <!-- Bottom Cake Tier -->
+                    <rect x="45" y="145" width="150" height="60" rx="16" fill="#F9A8D4"/>
+                    <path d="M45 165 Q 63 180 82 165 T 120 165 T 158 165 T 195 165" stroke="#FFF1F2" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    
+                    <!-- Top Cake Tier -->
+                    <rect x="65" y="95" width="110" height="52" rx="14" fill="#F472B6"/>
+                    <!-- Frosting Drips -->
+                    <path d="M65 108 C 65 95, 175 95, 175 108 L 175 118 C 175 125, 162 125, 162 116 C 162 128, 145 128, 145 115 C 145 126, 128 126, 128 117 C 128 129, 110 129, 110 116 C 110 126, 92 126, 92 115 C 92 125, 78 125, 78 117 C 78 124, 65 124, 65 116 Z" fill="#FFF5F7"/>
+                    
+                    <!-- Cute Sprinkles -->
+                    <circle cx="90" cy="105" r="2.5" fill="#FBBF24"/>
+                    <circle cx="120" cy="103" r="2.5" fill="#60A5FA"/>
+                    <circle cx="150" cy="106" r="2.5" fill="#A78BFA"/>
+                    <circle cx="105" cy="135" r="2.5" fill="#FFF"/>
+                    <circle cx="135" cy="135" r="2.5" fill="#FFF"/>
+
+                    <!-- Candle Stick -->
+                    <rect x="114" y="55" width="12" height="40" rx="4" fill="#FEF08A" stroke="#FDE047" stroke-width="2"/>
+                    <path d="M114 65 L126 72 M114 77 L126 84" stroke="#F472B6" stroke-width="2.5"/>
+
+                    <!-- Candle Flame Group -->
+                    <g id="candle-flame" style="transform-origin: 120px 50px;" class="animate-flicker">
+                        <!-- Outer Glow -->
+                        <circle cx="120" cy="40" r="16" fill="#FDE047" opacity="0.35"/>
+                        <!-- Outer Flame -->
+                        <path d="M120 22 C 129 34, 129 48, 120 51 C 111 48, 111 34, 120 22 Z" fill="#FB923C"/>
+                        <!-- Inner Flame -->
+                        <path d="M120 30 C 125 37, 125 46, 120 48 C 115 46, 115 37, 120 30 Z" fill="#FEF08A"/>
+                    </g>
+
+                    <!-- Smoke Group (Hidden initially) -->
+                    <g id="candle-smoke" style="transform-origin: 120px 45px;" class="hidden">
+                        <path d="M120 50 Q 112 38 122 28 T 118 10" stroke="#9CA3AF" stroke-width="3" stroke-linecap="round" fill="none"/>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="mt-4 flex flex-wrap justify-center gap-3">
+                <button onclick="relightCandle()" id="relight-btn" class="hidden bg-pink-100 hover:bg-pink-200 text-pink-700 font-bold px-5 py-2.5 rounded-full text-sm transition-colors cursor-pointer">
+                    🕯️ Relight Candle
+                </button>
+                <button onclick="triggerConfettiBurst()" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold px-6 py-2.5 rounded-full text-sm shadow-md transition-transform active:scale-95 cursor-pointer">
+                    🎉 Celebrate Again!
+                </button>
+            </div>
+        </section>
+
+        <!-- Heartfelt Wishes Cards Grid -->
+        <section class="w-full mb-12">
+            <h3 class="font-cursive text-3xl sm:text-4xl text-center text-pink-600 mb-8">Sweet Wishes Just For You 💐</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Card 1 -->
+                <div class="bg-white/85 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-pink-100 hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center">
+                    <div class="w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-inner">
+                        🌸
+                    </div>
+                    <h4 class="font-bold text-lg text-gray-800 mb-2">Endless Joy</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        May your smile shine brighter than ever today, Jessi! You bring so much warmth and kindness into the world around you.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white/85 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-purple-100 hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center">
+                    <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-inner">
+                        ✨
+                    </div>
+                    <h4 class="font-bold text-lg text-gray-800 mb-2">Dreams Come True</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Here's to a year filled with exciting adventures, big milestones, and every single dream you've been wishing for!
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white/85 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-rose-100 hover:-translate-y-2 transition-transform duration-300 flex flex-col items-center text-center">
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-inner">
+                        ⏳
+                    </div>
+                    <h4 class="font-bold text-lg text-gray-800 mb-2">One in a Multiverse</h4>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Out of infinite branches in the multiverse, you'll always be my #1 Variant—causing the cutest Nexus Events everywhere you go!
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Interactive Bouquet Gift Box -->
+        <section class="w-full max-w-2xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-rose-500/10 backdrop-blur-md rounded-3xl p-8 border border-white/80 shadow-lg text-center">
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">A Virtual Bouquet for My Variant 💐</h3>
+            <p id="gift-subtitle" class="text-gray-600 text-sm mb-6">Tap the gift box below to unwrap a special Sacred Timeline surprise!</p>
+            
+            <div id="gift-container" class="flex flex-col items-center">
+                <button id="gift-box" onclick="openGift()" class="text-7xl p-3 hover:scale-110 transition-transform duration-300 cursor-pointer animate-bounce focus:outline-none" aria-label="Open Birthday Gift">
+                    🎁
+                </button>
+                
+                <div id="gift-reveal" class="hidden mt-4 bg-white/95 rounded-2xl p-6 sm:p-8 shadow-md border border-pink-200 max-w-md animate-pop-in">
+                    <div class="text-4xl sm:text-5xl mb-3 tracking-widest">💐🌹🌷🌻🌺</div>
+                    <p class="font-cursive text-2xl sm:text-3xl text-pink-600 mb-3">To My Favorite Variant, Jessi,</p>
+                    <p class="text-gray-700 text-sm sm:text-base leading-relaxed italic mb-3">
+                        "Happy Birthday! Never forget how wonderful, unique, and appreciated you are. Even the TVA couldn't prune how amazing you are!"
+                    </p>
+                    <span class="inline-block text-xs font-bold uppercase tracking-widest text-amber-700 bg-amber-100/80 px-3 py-1 rounded-full">
+                        ⏳ For All Time. Always.
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-14 pb-8 text-center text-gray-500 text-sm">
+            <p>Made with 💖 & 💐 for <span class="font-bold text-pink-600">Jessi Calancea</span> • <span class="text-amber-700 font-semibold">My Favorite Variant ⏳</span></p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- 1. Floating Floral Garden & Interactive Tap Sparkles ---
+        function createFloatingFlowers() {
+            const garden = document.getElementById('floating-garden');
+            if (!garden) return;
+            const flowers = ['🌸', '💐', '🌷', '🌺', '✨', '⏳', '💖'];
+            const count = 24;
+
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.innerText = flowers[Math.floor(Math.random() * flowers.length)];
+                el.className = 'absolute select-none opacity-45 animate-float';
+                
+                const left = Math.random() * 96;
+                const top = Math.random() * 96;
+                const size = Math.random() * 1.1 + 0.9;
+                const delay = Math.random() * 5;
+                const duration = Math.random() * 4 + 5;
+
+                el.style.left = `${left}vw`;
+                el.style.top = `${top}vh`;
+                el.style.fontSize = `${size}rem`;
+                el.style.animationDelay = `${delay}s`;
+                el.style.animationDuration = `${duration}s`;
+
+                garden.appendChild(el);
+            }
+        }
+
+        // Cute sparkle burst wherever the user clicks/taps
+        document.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('button')) return;
+            const emojis = ['✨', '🌸', '💖', '⏳', '💐'];
+            const sparkle = document.createElement('div');
+            sparkle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            sparkle.className = 'fixed pointer-events-none z-30 text-xl select-none animate-sparkle-fade';
+            sparkle.style.left = `${e.clientX}px`;
+            sparkle.style.top = `${e.clientY}px`;
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 900);
+        });
+
+        // --- 2. Enhanced Music-Box Birthday Song Synthesizer (Tone.js) ---
+        let isPlaying = false;
+        let userPaused = false;
+        let audioInitialized = false;
+        let melodySynth = null;
+        let harmonySynth = null;
+        let melodyPart = null;
+
+        // Notes with gentle accompaniment chords for a fuller music-box sound
+        const birthdayScore = [
+            // "Happy birth-day to you"
+            { time: '0:0', note: 'C4', duration: '8n', chord: null },
+            { time: '0:0:2', note: 'C4', duration: '8n', chord: null },
+            { time: '0:1', note: 'D4', duration: '4n', chord: ['F3', 'A3', 'C4'] },
+            { time: '0:2', note: 'C4', duration: '4n', chord: null },
+            { time: '0:3', note: 'F4', duration: '4n', chord: null },
+            { time: '1:0', note: 'E4', duration: '2n', chord: ['C3', 'G3', 'Bb3'] },
+
+            // "Happy birth-day to you"
+            { time: '1:2', note: 'C4', duration: '8n', chord: null },
+            { time: '1:2:2', note: 'C4', duration: '8n', chord: null },
+            { time: '1:3', note: 'D4', duration: '4n', chord: ['C3', 'G3', 'Bb3'] },
+            { time: '2:0', note: 'C4', duration: '4n', chord: null },
+            { time: '2:1', note: 'G4', duration: '4n', chord: null },
+            { time: '2:2', note: 'F4', duration: '2n', chord: ['F3', 'A3', 'C4'] },
+
+            // "Happy birth-day dear Jessi"
+            { time: '3:0', note: 'C4', duration: '8n', chord: null },
+            { time: '3:0:2', note: 'C4', duration: '8n', chord: null },
+            { time: '3:1', note: 'C5', duration: '4n', chord: ['F3', 'A3', 'C4'] },
+            { time: '3:2', note: 'A4', duration: '4n', chord: null },
+            { time: '3:3', note: 'F4', duration: '4n', chord: ['Bb2', 'F3', 'D4'] },
+            { time: '4:0', note: 'E4', duration: '4n', chord: null },
+            { time: '4:1', note: 'D4', duration: '2n', chord: null },
+
+            // "Happy birth-day to you!"
+            { time: '4:3', note: 'Bb4', duration: '8n', chord: null },
+            { time: '4:3:2', note: 'Bb4', duration: '8n', chord: null },
+            { time: '5:0', note: 'A4', duration: '4n', chord: ['F3', 'C4'] },
+            { time: '5:1', note: 'F4', duration: '4n', chord: null },
+            { time: '5:2', note: 'G4', duration: '4n', chord: ['C3', 'G3', 'Bb3'] },
+            { time: '5:3', note: 'F4', duration: '2n', chord: ['F3', 'A3', 'C4'] }
+        ];
+
+        function setupAudio() {
+            if (audioInitialized || typeof Tone === 'undefined') return;
+            audioInitialized = true;
+
+            const reverb = new Tone.Reverb({ decay: 2.8, wet: 0.35 }).toDestination();
+
+            // Lead music-box chime
+            melodySynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'triangle' },
+                envelope: {
+                    attack: 0.015,
+                    decay: 0.35,
+                    sustain: 0.15,
+                    release: 1.4
+                },
+                volume: -5
+            }).connect(reverb);
+
+            // Soft warm harmonic pad underneath
+            harmonySynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'sine' },
+                envelope: {
+                    attack: 0.08,
+                    decay: 0.5,
+                    sustain: 0.3,
+                    release: 1.8
+                },
+                volume: -14
+            }).connect(reverb);
+
+            Tone.Transport.bpm.value = 112;
+
+            melodyPart = new Tone.Part((time, value) => {
+                melodySynth.triggerAttackRelease(value.note, value.duration, time);
+                if (value.chord) {
+                    harmonySynth.triggerAttackRelease(value.chord, '2n', time);
+                }
+            }, birthdayScore);
+
+            melodyPart.loop = true;
+            melodyPart.loopEnd = '6:2';
+        }
+
+        async function startBirthdayExperience() {
+            if (typeof Tone === 'undefined') return;
+            try {
+                await Tone.start();
+                if (Tone.context.state !== 'running') {
+                    await Tone.context.resume();
+                }
+                setupAudio();
+                
+                if (melodyPart && Tone.Transport.state !== 'started') {
+                    melodyPart.start(0);
+                    Tone.Transport.start();
+                }
+                
+                isPlaying = Tone.context.state === 'running';
+                updateMusicUI();
+            } catch (err) {
+                isPlaying = false;
+                updateMusicUI();
+            }
+        }
+
+        // Called when clicking the welcome card button
+        async function openBirthdayCard() {
+            const overlay = document.getElementById('welcome-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                setTimeout(() => overlay.classList.add('hidden'), 700);
+            }
+            
+            userPaused = false;
+            await startBirthdayExperience();
+            triggerConfettiBurst();
+        }
+
+        async function toggleMusic() {
+            if (typeof Tone === 'undefined') return;
+            if (!audioInitialized) {
+                userPaused = false;
+                await startBirthdayExperience();
+                return;
+            }
+
+            if (isPlaying) {
+                Tone.Transport.pause();
+                isPlaying = false;
+                userPaused = true;
+            } else {
+                await Tone.start();
+                if (Tone.context.state !== 'running') {
+                    await Tone.context.resume();
+                }
+                Tone.Transport.start();
+                isPlaying = true;
+                userPaused = false;
+            }
+            updateMusicUI();
+        }
+
+        function updateMusicUI() {
+            const icon = document.getElementById('music-icon');
+            const status = document.getElementById('music-status');
+            if (!icon || !status) return;
+            if (isPlaying) {
+                icon.innerText = '🎶';
+                status.innerText = 'Playing';
+            } else {
+                icon.innerText = '🔇';
+                status.innerText = 'Play Song';
+            }
+        }
+
+        // Pause cleanly when switching tabs and resume if user didn't manually pause
+        document.addEventListener('visibilitychange', () => {
+            if (typeof Tone === 'undefined' || !audioInitialized) return;
+            if (document.hidden && isPlaying) {
+                Tone.Transport.pause();
+                isPlaying = false;
+                updateMusicUI();
+            } else if (!document.hidden && !userPaused && Tone.context.state === 'running') {
+                Tone.Transport.start();
+                isPlaying = true;
+                updateMusicUI();
+            }
+        });
+
+        // --- 3. Interactive Cake & Confetti ---
+        let candleLit = true;
+
+        function blowOutCandle() {
+            if (!isPlaying && !userPaused) startBirthdayExperience();
+
+            if (!candleLit) return;
+            candleLit = false;
+
+            const flame = document.getElementById('candle-flame');
+            const smoke = document.getElementById('candle-smoke');
+
+            flame.classList.add('hidden');
+            smoke.classList.remove('hidden');
+            smoke.classList.add('animate-smoke-rise');
+            
+            document.getElementById('relight-btn').classList.remove('hidden');
+            document.getElementById('cake-instruction').innerText = "Yay! Your wish is on its way to the stars! 🌟";
+
+            triggerConfettiBurst();
+        }
+
+        function relightCandle() {
+            candleLit = true;
+            const flame = document.getElementById('candle-flame');
+            const smoke = document.getElementById('candle-smoke');
+
+            flame.classList.remove('hidden');
+            smoke.classList.add('hidden');
+            smoke.classList.remove('animate-smoke-rise');
+            
+            document.getElementById('relight-btn').classList.add('hidden');
+            document.getElementById('cake-instruction').innerText = "Tap the glowing candle to blow it out & launch confetti!";
+        }
+
+        function triggerConfettiBurst() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 85,
+                    spread: 75,
+                    origin: { y: 0.6 },
+                    colors: ['#FF69B4', '#FFB6C1', '#FFD700', '#DA70D6', '#87CEFA']
+                });
+            }
+        }
+
+        // --- 4. Gift Box Unwrap ---
+        let giftOpened = false;
+        function openGift() {
+            if (!isPlaying && !userPaused) startBirthdayExperience();
+            
+            const box = document.getElementById('gift-box');
+            const reveal = document.getElementById('gift-reveal');
+            const subtitle = document.getElementById('gift-subtitle');
+            
+            box.innerText = '💐';
+            box.classList.remove('animate-bounce');
+            reveal.classList.remove('hidden');
+            subtitle.innerText = "A blooming bouquet of wishes just for you!";
+            
+            if (!giftOpened) {
+                giftOpened = true;
+                triggerConfettiBurst();
+            }
+        }
+
+        // --- 5. Initialization ---
+        window.addEventListener('load', () => {
+            createFloatingFlowers();
+            // Attempt automatic playback right away in case browser permits it
+            startBirthdayExperience();
+        });
+    </script>
+</body>
+</html>
